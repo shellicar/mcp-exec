@@ -147,5 +147,6 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node,turbo
 
-# Claude Code
-.claude/
+# Claude harness — Stage 2
+!.claude/*/
+!.claude/**/*.md
