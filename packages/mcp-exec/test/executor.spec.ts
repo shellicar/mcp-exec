@@ -115,6 +115,45 @@ describe('executor', () => {
     });
   });
 
+  describe('merge_stderr', () => {
+    it('pipes stderr into next command stdin when merge_stderr is true', async () => {
+      const step: Step = {
+        type: 'pipeline',
+        commands: [
+          { program: 'node', args: ['-e', 'process.stderr.write("from-stderr")'], merge_stderr: true },
+          { program: 'cat', args: [] },
+        ],
+      };
+      const result = await execute(input([step]), '/tmp');
+      expect(result.results[0]?.stdout.trim()).toBe('from-stderr');
+    });
+
+    it('does not pipe stderr to next command when merge_stderr is false', async () => {
+      const step: Step = {
+        type: 'pipeline',
+        commands: [
+          { program: 'node', args: ['-e', 'process.stderr.write("from-stderr")'], merge_stderr: false },
+          { program: 'cat', args: [] },
+        ],
+      };
+      const result = await execute(input([step]), '/tmp');
+      expect(result.results[0]?.stdout.trim()).toBe('');
+      expect(result.results[0]?.stderr).toContain('from-stderr');
+    });
+
+    it('merge_stderr on last command has no effect', async () => {
+      const step: Step = {
+        type: 'pipeline',
+        commands: [
+          { program: 'echo', args: ['hello'] },
+          { program: 'cat', args: [], merge_stderr: true },
+        ],
+      };
+      const result = await execute(input([step]), '/tmp');
+      expect(result.results[0]?.stdout.trim()).toBe('hello');
+    });
+  });
+
   describe('exit code propagation', () => {
     it('propagates exit code from the command', async () => {
       const result = await execute(input([cmd('bash', ['-c', 'exit 42'])]), '/tmp');
