@@ -1,12 +1,13 @@
 {
-  "name": "pnpm-starter",
-  "description": "",
+  "name": "@shellicar-mcp-exec/root",
+  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be",
+  "private": true,
   "scripts": {
     "test": "turbo run test",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "start": "turbo run start",
-    "type-check": "turbo run type-check",
+    "check-types": "turbo run check-types",
     "lint": "biome lint",
     "format": "biome format",
     "check": "biome check",
@@ -17,10 +18,6 @@
     "updates": "npm-check-updates --workspaces",
     "postinstall": "lefthook install"
   },
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.32.1",
-  "private": "true",
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "lefthook": "^2.1.4",

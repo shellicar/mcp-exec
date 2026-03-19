@@ -1,7 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "ui": "stream",
-  "daemon": false,
+  "ui": "stream-with-experimental-timestamps",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -21,8 +20,11 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "type-check": {
-      "dependsOn": ["^build"],
+    "topo": {
+      "dependsOn": ["^topo"]
+    },
+    "check-types": {
+      "dependsOn": ["topo"],
       "inputs": ["tsconfig.check.json"],
       "outputs": ["**/node_modules/.cache/tsbuildinfo.json"]
     }

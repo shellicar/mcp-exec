@@ -1,0 +1,13 @@
+{
+  "name": "@shellicar-mcp-exec/typescript-config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./base.json": "./base.json",
+    "./library.json": "./library.json"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.4"
+  }
+}
