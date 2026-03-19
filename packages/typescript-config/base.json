@@ -5,6 +5,7 @@
     "target": "es2024",
     "module": "es2022",
     "moduleResolution": "bundler",
+    "moduleDetection": "force",
     "lib": ["ES2024", "ESNext.Array"],
     "strict": true,
     "strictNullChecks": true,
@@ -28,8 +29,7 @@
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedSideEffectImports": true,
-    "preserveWatchOutput": true,
-    "moduleDetection": "force"
+    "preserveWatchOutput": true
   },
   "exclude": ["node_modules", "dist"]
 }

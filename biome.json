@@ -72,7 +72,7 @@
   },
   "overrides": [
     {
-      "includes": ["packages/*/src/index.ts"],
+      "includes": ["**/entry/*.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -97,12 +97,23 @@
         "**/functions/*.ts",
         "**/handlers/*.ts",
         "**/inject/*.ts",
-        "scripts/**"
+        "scripts/**",
+        "**/*.spec.ts"
       ],
       "linter": {
         "rules": {
           "style": {
             "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["examples/**/*.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
           }
         }
       }
