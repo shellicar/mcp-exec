@@ -72,8 +72,8 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `feature/general-improvements`
-In-progress: PR #3 open — https://github.com/shellicar/mcp-exec/pull/3. Ready for review/merge.
+Branch: `main`
+Released: `1.0.0-preview.2` published to npm. No active in-progress work.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
