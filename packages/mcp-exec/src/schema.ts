@@ -45,7 +45,7 @@ export const CommandSchema = z.object({
     .boolean()
     .default(false)
     .describe(
-      'Merge stderr into stdout before piping to the next command. Equivalent to 2>&1 in a shell pipe. Only applies to non-final pipeline commands.',
+      'Merge stderr into stdout (equivalent to 2>&1). Combined output appears in stdout; stderr will be empty.',
     ),
 });
 

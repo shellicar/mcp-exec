@@ -28,7 +28,7 @@ export function execCommand(cmd: Command, cwd: string, timeoutMs?: number): Prom
     const stderr: Buffer[] = [];
 
     child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
-    child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
+    child.stderr.on('data', (chunk: Buffer) => (cmd.merge_stderr ? stdout : stderr).push(chunk));
 
     if (cmd.stdin !== undefined) {
       child.stdin.write(cmd.stdin);

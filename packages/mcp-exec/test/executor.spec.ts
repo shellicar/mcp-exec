@@ -144,6 +144,30 @@ describe('executor', () => {
       const result = await execute(input([step]), '/tmp');
       expect(result.results[0]?.stdout.trim()).toBe('hello');
     });
+
+    it('merges stderr into stdout for a single command', async () => {
+      const result = await execute(
+        input([
+          cmd('node', ['-e', 'process.stdout.write("out"); process.stderr.write("err")'], { merge_stderr: true }),
+        ]),
+        '/tmp',
+      );
+      expect(result.success).toBe(true);
+      expect(result.results[0]?.stdout).toContain('out');
+      expect(result.results[0]?.stdout).toContain('err');
+      expect(result.results[0]?.stderr).toBe('');
+    });
+
+    it('keeps stderr separate for a single command when merge_stderr is false', async () => {
+      const result = await execute(
+        input([cmd('node', ['-e', 'process.stdout.write("out"); process.stderr.write("err")'])]),
+        '/tmp',
+      );
+      expect(result.success).toBe(true);
+      expect(result.results[0]?.stdout).toContain('out');
+      expect(result.results[0]?.stdout).not.toContain('err');
+      expect(result.results[0]?.stderr).toContain('err');
+    });
   });
 
   describe('working directory not found', () => {
