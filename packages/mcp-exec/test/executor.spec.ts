@@ -182,12 +182,6 @@ describe('executor', () => {
       expect(result.results[0]?.exitCode).toBe(127);
       expect(result.results[0]?.stderr).toContain('Command not found');
     });
-
-    it('applies expandPath before cwd check', async () => {
-      const result = await execute(input([cmd('echo', ['hello'], { cwd: '$HOME' })]), '/tmp');
-      expect(result.success).toBe(true);
-      expect(result.results[0]?.exitCode).toBe(0);
-    });
   });
 
   describe('exit code propagation', () => {

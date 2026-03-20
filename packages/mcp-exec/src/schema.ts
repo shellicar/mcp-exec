@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const RedirectSchema = z.object({
   path: z
     .string()
-    .describe('File path to redirect output to')
+    .describe('File path to redirect output to. Supports ~ and $VAR expansion.')
     .meta({ examples: ['/tmp/output.txt', '~/build.log'] }),
   stream: z.enum(['stdout', 'stderr', 'both']).default('stdout').describe('Which output stream to redirect'),
   append: z.boolean().default(false).describe('Append to file instead of overwriting'),
@@ -21,7 +21,9 @@ export const CommandSchema = z.object({
   args: z
     .array(z.string())
     .default([])
-    .describe('Arguments to the program. Each argument is a separate string — no shell quoting or escaping needed.')
+    .describe(
+      'Arguments to the program. Each argument is a separate string — no shell quoting or escaping needed. Note: ~ and $VAR are NOT expanded in args. Use absolute paths or let the program resolve them.',
+    )
     .meta({ examples: [['status'], ['commit', '-m', 'Fix bug'], ['--filter', 'mcp-exec', 'build']] }),
   stdin: z
     .string()

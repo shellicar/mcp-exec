@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createWriteStream, existsSync } from 'node:fs';
 import { PassThrough } from 'node:stream';
-import { expandPath } from './expandPath';
 import type { Command, StepResult } from './types';
 
 /** Execute a pipeline of commands with stdout→stdin piping. */
@@ -10,13 +9,12 @@ export async function execPipeline(commands: Command[], cwd: string, timeoutMs?:
     return { stdout: '', stderr: '', exitCode: 0, signal: null };
   }
 
-  const resolvedCwd = expandPath(cwd);
-  if (!existsSync(resolvedCwd)) {
-    return { stdout: '', stderr: `Working directory not found: ${resolvedCwd}`, exitCode: 126, signal: null };
+  if (!existsSync(cwd)) {
+    return { stdout: '', stderr: `Working directory not found: ${cwd}`, exitCode: 126, signal: null };
   }
 
   for (const cmd of commands) {
-    const cmdCwd = cmd.cwd ? expandPath(cmd.cwd) : resolvedCwd;
+    const cmdCwd = cmd.cwd ?? cwd;
     if (!existsSync(cmdCwd)) {
       return { stdout: '', stderr: `Working directory not found: ${cmdCwd}`, exitCode: 126, signal: null };
     }
@@ -24,8 +22,8 @@ export async function execPipeline(commands: Command[], cwd: string, timeoutMs?:
 
   return new Promise((resolve) => {
     const children = commands.map((cmd, i) => {
-      const cmdCwd = cmd.cwd ? expandPath(cmd.cwd) : resolvedCwd;
-      const child = spawn(expandPath(cmd.program), cmd.args ?? [], {
+      const cmdCwd = cmd.cwd ?? cwd;
+      const child = spawn(cmd.program, cmd.args ?? [], {
         cwd: cmdCwd,
         env: cmd.env ? { ...process.env, ...cmd.env } : process.env,
         stdio: 'pipe',

@@ -1,11 +1,10 @@
 import { spawn } from 'node:child_process';
 import { createWriteStream, existsSync } from 'node:fs';
-import { expandPath } from './expandPath';
 import type { Command, StepResult } from './types';
 
 /** Execute a single command via child_process.spawn (no shell). */
 export function execCommand(cmd: Command, cwd: string, timeoutMs?: number): Promise<StepResult> {
-  const resolvedCwd = expandPath(cmd.cwd ?? cwd);
+  const resolvedCwd = cmd.cwd ?? cwd;
 
   if (!existsSync(resolvedCwd)) {
     return Promise.resolve({
@@ -18,7 +17,7 @@ export function execCommand(cmd: Command, cwd: string, timeoutMs?: number): Prom
 
   return new Promise((resolve) => {
     const env = { ...process.env, ...cmd.env } satisfies NodeJS.ProcessEnv;
-    const child = spawn(expandPath(cmd.program), cmd.args ?? [], {
+    const child = spawn(cmd.program, cmd.args ?? [], {
       cwd: resolvedCwd,
       env,
       stdio: 'pipe',
