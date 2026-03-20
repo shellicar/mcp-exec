@@ -92,7 +92,9 @@ describe('integration', () => {
 
       expect(result.isError).toBe(true);
       const content = result.content as { type: string; text: string }[];
-      expect(content[0]?.text).toContain('BLOCKED');
+      const texts = content.map((b) => b.text).join('\n');
+      expect(texts).not.toContain('Output validation error');
+      expect(texts).toContain('BLOCKED');
       const output = result.structuredContent as { success: boolean; results: unknown[] };
       expect(output.success).toBe(false);
       expect(output.results).toHaveLength(0);
