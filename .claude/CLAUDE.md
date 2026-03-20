@@ -72,8 +72,8 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `main`
-Released: `1.0.0-preview.2` published to npm. No active in-progress work.
+Branch: `fix/structured-output` — PR #8 open, awaiting review, auto squash merge enabled.
+Released: `1.0.0-preview.2` on npm. `1.0.0-preview.3` staged — will publish on PR merge.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
