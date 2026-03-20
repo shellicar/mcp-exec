@@ -1,7 +1,7 @@
 import { createExecServer } from '../createExecServer';
 import { execToolDefinition } from '../execToolDefinition';
 import { ExecInputSchema } from '../schema';
-import type { ExecConfig, ExecInput, ExecResult, ExecRule } from '../types';
+import type { ExecConfig, ExecInput, ExecOutput, ExecRule } from '../types';
 
-export type { ExecConfig, ExecInput, ExecResult, ExecRule };
+export type { ExecConfig, ExecInput, ExecOutput, ExecRule };
 export { createExecServer, ExecInputSchema, execToolDefinition };

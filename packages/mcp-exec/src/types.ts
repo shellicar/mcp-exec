@@ -14,7 +14,6 @@ import type {
 // --- Internal types ---
 export type StepResult = z.infer<typeof StepResultSchema>;
 export type ExecuteResult = z.infer<typeof ExecuteResultSchema>;
-export type ExecutionResult = z.infer<typeof ExecOutputSchema>;
 
 export type Redirect = z.infer<typeof RedirectSchema>;
 export type Command = z.output<typeof CommandSchema>;
@@ -26,9 +25,7 @@ export type Step = z.output<typeof StepSchema>;
 
 /** The parsed input to the exec tool. */
 export type ExecInput = z.output<typeof ExecInputSchema>;
-
-/** The overall result of executing all steps. */
-export type ExecResult = ExecutionResult;
+export type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
 /** A validation rule applied to each step before execution. */
 export interface ExecRule {

@@ -1,7 +1,7 @@
 {
   "name": "@shellicar/mcp-exec",
   "private": false,
-  "version": "1.0.0-preview.2",
+  "version": "1.0.0-preview.3",
   "type": "module",
   "license": "MIT",
   "author": "Stephen Hellicar",

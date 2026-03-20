@@ -1,8 +1,8 @@
 import { execStep } from './execStep';
-import type { ExecInput, ExecutionResult, StepResult } from './types';
+import type { ExecInput, ExecOutput, StepResult } from './types';
 
 /** Execute all steps according to the chaining strategy. */
-export async function execute(input: ExecInput, cwd: string): Promise<ExecutionResult> {
+export async function execute(input: ExecInput, cwd: string): Promise<ExecOutput> {
   const results: StepResult[] = [];
 
   for (const step of input.steps) {
