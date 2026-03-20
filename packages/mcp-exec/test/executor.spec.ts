@@ -14,7 +14,7 @@ function input(steps: Step[], chaining: ExecInput['chaining'] = 'bail_on_error')
 
 /** Helper: single command step */
 function cmd(program: string, args: string[] = [], extra?: Partial<Step & { type: 'command' }>): Step {
-  return { type: 'command', program, args, ...extra };
+  return { type: 'command', program, args, merge_stderr: false, ...extra };
 }
 
 describe('executor', () => {
@@ -41,6 +41,7 @@ describe('executor', () => {
         type: 'command',
         program: 'cat',
         args: [],
+        merge_stderr: false,
         stdin: 'hello from stdin',
       };
       const result = await execute(input([step]), '/tmp');
@@ -54,8 +55,8 @@ describe('executor', () => {
       const step: Step = {
         type: 'pipeline',
         commands: [
-          { program: 'echo', args: ['hello world'] },
-          { program: 'wc', args: ['-w'] },
+          { program: 'echo', args: ['hello world'], merge_stderr: false },
+          { program: 'wc', args: ['-w'], merge_stderr: false },
         ],
       };
       const result = await execute(input([step]), '/tmp');
@@ -67,9 +68,9 @@ describe('executor', () => {
       const step: Step = {
         type: 'pipeline',
         commands: [
-          { program: 'echo', args: ['banana\napple\ncherry'] },
-          { program: 'sort', args: [] },
-          { program: 'head', args: ['-1'] },
+          { program: 'echo', args: ['banana\napple\ncherry'], merge_stderr: false },
+          { program: 'sort', args: [], merge_stderr: false },
+          { program: 'head', args: ['-1'], merge_stderr: false },
         ],
       };
       const result = await execute(input([step]), '/tmp');
@@ -106,22 +107,13 @@ describe('executor', () => {
     });
   });
 
-  describe('command not found', () => {
-    it('returns error for nonexistent program', async () => {
-      const result = await execute(input([cmd('nonexistent_program_xyz_12345')]), '/tmp');
-      expect(result.success).toBe(false);
-      expect(result.results[0]?.exitCode).not.toBe(0);
-      expect(result.results[0]?.stderr).toBeTruthy();
-    });
-  });
-
   describe('merge_stderr', () => {
     it('pipes stderr into next command stdin when merge_stderr is true', async () => {
       const step: Step = {
         type: 'pipeline',
         commands: [
           { program: 'node', args: ['-e', 'process.stderr.write("from-stderr")'], merge_stderr: true },
-          { program: 'cat', args: [] },
+          { program: 'cat', args: [], merge_stderr: false },
         ],
       };
       const result = await execute(input([step]), '/tmp');
@@ -133,7 +125,7 @@ describe('executor', () => {
         type: 'pipeline',
         commands: [
           { program: 'node', args: ['-e', 'process.stderr.write("from-stderr")'], merge_stderr: false },
-          { program: 'cat', args: [] },
+          { program: 'cat', args: [], merge_stderr: false },
         ],
       };
       const result = await execute(input([step]), '/tmp');
@@ -145,12 +137,56 @@ describe('executor', () => {
       const step: Step = {
         type: 'pipeline',
         commands: [
-          { program: 'echo', args: ['hello'] },
+          { program: 'echo', args: ['hello'], merge_stderr: false },
           { program: 'cat', args: [], merge_stderr: true },
         ],
       };
       const result = await execute(input([step]), '/tmp');
       expect(result.results[0]?.stdout.trim()).toBe('hello');
+    });
+  });
+
+  describe('working directory not found', () => {
+    it('returns exit 126 for non-existent cwd on command', async () => {
+      const result = await execute(input([cmd('echo', ['hello'], { cwd: '/tmp/nonexistent-cwd-xyz-99999' })]), '/tmp');
+      expect(result.success).toBe(false);
+      expect(result.results[0]?.exitCode).toBe(126);
+      expect(result.results[0]?.stderr).toContain('Working directory not found');
+      expect(result.results[0]?.stderr).toContain('/tmp/nonexistent-cwd-xyz-99999');
+    });
+
+    it('returns exit 126 for non-existent default cwd on command', async () => {
+      const result = await execute(input([cmd('echo', ['hello'])]), '/tmp/nonexistent-default-cwd-xyz-99999');
+      expect(result.success).toBe(false);
+      expect(result.results[0]?.exitCode).toBe(126);
+      expect(result.results[0]?.stderr).toContain('Working directory not found');
+    });
+
+    it('returns exit 126 for non-existent cwd on pipeline', async () => {
+      const step: Step = {
+        type: 'pipeline',
+        commands: [
+          { program: 'echo', args: ['hello'], merge_stderr: false },
+          { program: 'cat', args: [], merge_stderr: false },
+        ],
+      };
+      const result = await execute(input([step]), '/tmp/nonexistent-pipeline-cwd-xyz-99999');
+      expect(result.success).toBe(false);
+      expect(result.results[0]?.exitCode).toBe(126);
+      expect(result.results[0]?.stderr).toContain('Working directory not found');
+    });
+
+    it('still returns exit 127 for non-existent program', async () => {
+      const result = await execute(input([cmd('nonexistent_program_xyz_12345')]), '/tmp');
+      expect(result.success).toBe(false);
+      expect(result.results[0]?.exitCode).toBe(127);
+      expect(result.results[0]?.stderr).toContain('Command not found');
+    });
+
+    it('applies expandPath before cwd check', async () => {
+      const result = await execute(input([cmd('echo', ['hello'], { cwd: '$HOME' })]), '/tmp');
+      expect(result.success).toBe(true);
+      expect(result.results[0]?.exitCode).toBe(0);
     });
   });
 

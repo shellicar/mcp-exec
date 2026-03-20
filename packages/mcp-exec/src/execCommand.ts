@@ -1,14 +1,25 @@
 import { spawn } from 'node:child_process';
-import { createWriteStream } from 'node:fs';
+import { createWriteStream, existsSync } from 'node:fs';
 import { expandPath } from './expandPath';
 import type { Command, StepResult } from './types';
 
 /** Execute a single command via child_process.spawn (no shell). */
 export function execCommand(cmd: Command, cwd: string, timeoutMs?: number): Promise<StepResult> {
+  const resolvedCwd = expandPath(cmd.cwd ?? cwd);
+
+  if (!existsSync(resolvedCwd)) {
+    return Promise.resolve({
+      stdout: '',
+      stderr: `Working directory not found: ${resolvedCwd}`,
+      exitCode: 126,
+      signal: null,
+    });
+  }
+
   return new Promise((resolve) => {
     const env = { ...process.env, ...cmd.env } satisfies NodeJS.ProcessEnv;
     const child = spawn(expandPath(cmd.program), cmd.args ?? [], {
-      cwd: expandPath(cmd.cwd ?? cwd),
+      cwd: resolvedCwd,
       env,
       stdio: 'pipe',
       timeout: timeoutMs,

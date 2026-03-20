@@ -5,14 +5,14 @@ import { validate } from '../src/validate.js';
 
 /** Helper: create a single command step */
 function cmd(program: string, args: string[] = []): Step {
-  return { type: 'command', program, args };
+  return { type: 'command', program, args, merge_stderr: false };
 }
 
 /** Helper: create a pipeline step */
 function pipeline(...commands: { program: string; args?: string[] }[]): Step {
   return {
     type: 'pipeline',
-    commands: commands.map((c) => ({ program: c.program, args: c.args ?? [] })),
+    commands: commands.map((c) => ({ program: c.program, args: c.args ?? [], merge_stderr: false })),
   };
 }
 
