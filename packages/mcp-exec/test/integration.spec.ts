@@ -93,6 +93,9 @@ describe('integration', () => {
       expect(result.isError).toBe(true);
       const content = result.content as { type: string; text: string }[];
       expect(content[0]?.text).toContain('BLOCKED');
+      const output = result.structuredContent as { success: boolean; results: unknown[] };
+      expect(output.success).toBe(false);
+      expect(output.results).toHaveLength(0);
     });
   });
 });
