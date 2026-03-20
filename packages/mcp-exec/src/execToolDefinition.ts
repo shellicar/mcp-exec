@@ -13,7 +13,6 @@ type ToolOutput<T> = { content: TextContent[]; structuredContent: T; isError?: b
 type ExecToolHandler = (input: ExecInput) => Promise<ToolOutput<ExecOutput>>;
 
 /** Register the exec tool on an existing McpServer instance. */
-
 export const execToolDefinition = (server: McpServer, config?: ExecConfig): void => {
   const cwd = config?.cwd ?? process.cwd();
   const rules = config?.rules ?? builtinRules;
@@ -57,9 +56,13 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
     };
   };
 
+  const normaliseHandler: ExecToolHandler = async (rawInput) => {
+    return await handler(normaliseInput(rawInput));
+  };
+
   server.registerTool(
     ExecToolName,
     { description: ExecToolDescription, inputSchema: ExecInputSchema.shape, outputSchema: ExecOutputSchema.shape },
-    (rawInput) => handler(normaliseInput(rawInput)),
+    normaliseHandler,
   );
 };
