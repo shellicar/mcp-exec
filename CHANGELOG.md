@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-preview.2] - 2026-03-20
+
+### Added
+
+- Path expansion (`~` and `$VAR`) for `program`, `cwd`, and `redirect.path` fields
+- `merge_stderr` support on single commands (equivalent to `2>&1`)
+- Differentiated ENOENT exit codes: exit 126 for working directory not found, exit 127 for program not found
+
 ## [1.0.0-preview.1] - 2026-03-19
 
 ### Added
@@ -15,3 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for stdin injection, environment variables, working directory, output redirection, ANSI stripping, timeout, and background execution
 - Built-in validation rules blocking destructive operations including rm, sed -i, git reset, force push, xargs, and sudo
 - Pluggable rule system for custom validation
+
+[1.0.0-preview.2]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.2
+[1.0.0-preview.1]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.1

@@ -72,12 +72,9 @@
   },
   "overrides": [
     {
-      "includes": ["**/entry/*.ts"],
+      "includes": ["**/entry/index.ts"],
       "linter": {
         "rules": {
-          "style": {
-            "useFilenamingConvention": "off"
-          },
           "performance": {
             "noBarrelFile": "off"
           }
@@ -97,7 +94,8 @@
         "**/functions/*.ts",
         "**/handlers/*.ts",
         "**/inject/*.ts",
-        "scripts/**",
+        "**/entry/*.ts",
+        "**/scripts/**",
         "**/*.spec.ts"
       ],
       "linter": {

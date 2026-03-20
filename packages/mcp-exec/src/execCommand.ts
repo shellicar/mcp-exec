@@ -1,13 +1,24 @@
 import { spawn } from 'node:child_process';
-import { createWriteStream } from 'node:fs';
+import { createWriteStream, existsSync } from 'node:fs';
 import type { Command, StepResult } from './types';
 
 /** Execute a single command via child_process.spawn (no shell). */
 export function execCommand(cmd: Command, cwd: string, timeoutMs?: number): Promise<StepResult> {
+  const resolvedCwd = cmd.cwd ?? cwd;
+
+  if (!existsSync(resolvedCwd)) {
+    return Promise.resolve({
+      stdout: '',
+      stderr: `Working directory not found: ${resolvedCwd}`,
+      exitCode: 126,
+      signal: null,
+    });
+  }
+
   return new Promise((resolve) => {
     const env = { ...process.env, ...cmd.env } satisfies NodeJS.ProcessEnv;
     const child = spawn(cmd.program, cmd.args ?? [], {
-      cwd: cmd.cwd ?? cwd,
+      cwd: resolvedCwd,
       env,
       stdio: 'pipe',
       timeout: timeoutMs,
@@ -17,7 +28,7 @@ export function execCommand(cmd: Command, cwd: string, timeoutMs?: number): Prom
     const stderr: Buffer[] = [];
 
     child.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
-    child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
+    child.stderr.on('data', (chunk: Buffer) => (cmd.merge_stderr ? stdout : stderr).push(chunk));
 
     if (cmd.stdin !== undefined) {
       child.stdin.write(cmd.stdin);

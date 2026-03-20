@@ -17,10 +17,10 @@ export type ExecuteResult = z.infer<typeof ExecuteResultSchema>;
 export type ExecutionResult = z.infer<typeof ExecOutputSchema>;
 
 export type Redirect = z.infer<typeof RedirectSchema>;
-export type Command = z.infer<typeof CommandSchema>;
-export type Pipeline = z.infer<typeof PipelineSchema>;
-export type SingleCommand = z.infer<typeof SingleCommandSchema>;
-export type Step = z.infer<typeof StepSchema>;
+export type Command = z.output<typeof CommandSchema>;
+export type Pipeline = z.output<typeof PipelineSchema>;
+export type SingleCommand = z.output<typeof SingleCommandSchema>;
+export type Step = z.output<typeof StepSchema>;
 
 // --- Public API types ---
 

@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
-import { createWriteStream } from 'node:fs';
+import { createWriteStream, existsSync } from 'node:fs';
+import { PassThrough } from 'node:stream';
 import type { Command, StepResult } from './types';
 
 /** Execute a pipeline of commands with stdout→stdin piping. */
@@ -8,10 +9,22 @@ export async function execPipeline(commands: Command[], cwd: string, timeoutMs?:
     return { stdout: '', stderr: '', exitCode: 0, signal: null };
   }
 
+  if (!existsSync(cwd)) {
+    return { stdout: '', stderr: `Working directory not found: ${cwd}`, exitCode: 126, signal: null };
+  }
+
+  for (const cmd of commands) {
+    const cmdCwd = cmd.cwd ?? cwd;
+    if (!existsSync(cmdCwd)) {
+      return { stdout: '', stderr: `Working directory not found: ${cmdCwd}`, exitCode: 126, signal: null };
+    }
+  }
+
   return new Promise((resolve) => {
     const children = commands.map((cmd, i) => {
+      const cmdCwd = cmd.cwd ?? cwd;
       const child = spawn(cmd.program, cmd.args ?? [], {
-        cwd: cmd.cwd ?? cwd,
+        cwd: cmdCwd,
         env: cmd.env ? { ...process.env, ...cmd.env } : process.env,
         stdio: 'pipe',
         timeout: timeoutMs,
@@ -27,12 +40,20 @@ export async function execPipeline(commands: Command[], cwd: string, timeoutMs?:
       return child;
     });
 
-    // Connect pipes: stdout of each → stdin of next
+    // Connect pipes: stdout (and optionally stderr) of each → stdin of next
     for (let i = 0; i < children.length - 1; i++) {
       const curr = children[i];
+      const currCmd = commands[i];
       const next = children[i + 1];
       if (curr !== undefined && next !== undefined) {
-        curr.stdout.pipe(next.stdin);
+        if (currCmd?.merge_stderr) {
+          const merged = new PassThrough();
+          curr.stdout.pipe(merged);
+          curr.stderr.pipe(merged);
+          merged.pipe(next.stdin);
+        } else {
+          curr.stdout.pipe(next.stdin);
+        }
       }
     }
 
@@ -48,8 +69,11 @@ export async function execPipeline(commands: Command[], cwd: string, timeoutMs?:
 
     lastChild.stdout.on('data', (chunk: Buffer) => stdout.push(chunk));
 
-    for (const child of children) {
-      child.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
+    for (let i = 0; i < children.length; i++) {
+      const isMerged = commands[i]?.merge_stderr && i < children.length - 1;
+      if (!isMerged) {
+        children[i]?.stderr.on('data', (chunk: Buffer) => stderr.push(chunk));
+      }
     }
 
     if (lastCmd.redirect) {
