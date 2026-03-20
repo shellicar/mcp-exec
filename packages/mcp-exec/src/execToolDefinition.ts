@@ -5,7 +5,7 @@ import { execute } from './execute';
 import { normaliseInput } from './normaliseInput';
 import { ExecInputSchema, ExecOutputSchema } from './schema';
 import { stripAnsi } from './stripAnsi';
-import type { Command, ExecConfig, ExecuteResult } from './types';
+import type { Command, ExecConfig, ExecOutput, ExecuteResult } from './types';
 import { validate } from './validate';
 
 /** Register the exec tool on an existing McpServer instance. */
@@ -50,7 +50,8 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
       });
 
       return {
-        content: content.length > 0 ? content : [{ type: 'text' as const, text: '(no output)' }],
+        content: content.length > 0 ? content : [{ type: 'text', text: '(no output)' }],
+        structuredContent: { results: result.results, success: result.success } satisfies ExecOutput,
         isError: !result.success,
       };
     },
