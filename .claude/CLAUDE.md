@@ -73,7 +73,7 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 <!-- BEGIN:REPO:current-state -->
 ## Current State
 Branch: `feature/general-improvements`
-In-progress: ENOENT differentiation complete. Pending push and PR.
+In-progress: PR #3 open — https://github.com/shellicar/mcp-exec/pull/3. Ready for review/merge.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
@@ -99,6 +99,8 @@ In-progress: ENOENT differentiation complete. Pending push and PR.
 | `execStep.ts` | Dispatcher: command vs pipeline |
 | `execCommand.ts` | Single command via `child_process.spawn()` |
 | `execPipeline.ts` | Pipeline: chain stdout -> stdin across commands |
+| `expandPath.ts` | Expand `~` and `$VAR` in path strings |
+| `normaliseInput.ts` | Pre-validation expansion of path-like fields (program, cwd, redirect.path) |
 | `schema.ts` | Input/output Zod schemas |
 | `types.ts` | TypeScript types (inferred from schemas) |
 | `builtinRules.ts` | 13 built-in validation rules |
@@ -117,6 +119,8 @@ In-progress: ENOENT differentiation complete. Pending push and PR.
 | `executor.spec.ts` | Command execution and chaining |
 | `validation.spec.ts` | All 13 validation rules |
 | `stripAnsi.spec.ts` | ANSI stripping |
+| `expandPath.spec.ts` | Path expansion |
+| `normaliseInput.spec.ts` | Pre-validation normalisation |
 <!-- END:REPO:architecture -->
 
 <!-- BEGIN:REPO:conventions -->
@@ -172,10 +176,11 @@ Globs, tilde, `$VAR` in args are NOT expanded — must be literal values. ENOENT
 <!-- BEGIN:REPO:known-debt -->
 ## Known Debt / Gotchas
 
-1. **No shell expansion** — globs, tilde, `$VAR` in args are not expanded. Must be literal values.
-2. **ENOENT -> exit 127** — if program not found, returns exit code 127.
-3. **Pipeline stderr** — collected from all commands, not just the last.
-4. **Timeout** — applied per-execution, not per-step.
+1. **Args not expanded** — `~` and `$VAR` in args are NOT expanded. Only `program`, `cwd`, and `redirect.path` are expanded.
+2. **ENOENT exit codes** — exit 126 for cwd-not-found, exit 127 for program-not-found.
+3. **Pipeline middle-command ENOENT** — undetected if a middle command in a pipeline is not found (issue #4).
+4. **Pipeline stderr** — collected from all commands, not just the last.
+5. **Timeout** — applied per-execution, not per-step.
 <!-- END:REPO:known-debt -->
 
 <!-- BEGIN:REPO:recent-decisions -->
@@ -185,6 +190,8 @@ Globs, tilde, `$VAR` in args are NOT expanded — must be literal values. ENOENT
 - **Monorepo structure** — pnpm workspaces with turbo. Follows @shellicar ecosystem conventions.
 - **Zod v4 z.infer = z.input** — use `z.output` for exported types (Zod v4 changed `z.infer` to map to input type, not output).
 - **ENOENT differentiation** — exit 126 for cwd-not-found, exit 127 for program-not-found. Check cwd existence before spawning.
+- **Normalisation layer** — path expansion (`~`, `$VAR`) happens in `normaliseInput.ts` before validation and execution. Only `program`, `cwd`, and `redirect.path` are expanded; `args` are not.
+- **merge_stderr on all commands** — `merge_stderr` applies to single commands and pipeline commands equally. No pipeline-only restriction.
 <!-- END:REPO:recent-decisions -->
 
 <!-- BEGIN:REPO:extra -->
