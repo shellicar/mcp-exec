@@ -72,8 +72,8 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `feature/exec-tool`
-In-progress: v1.0.0-preview.1 published. Branch ready for merge to main.
+Branch: `feature/general-improvements`
+In-progress: ENOENT differentiation complete. Pending push and PR.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
@@ -183,6 +183,8 @@ Globs, tilde, `$VAR` in args are NOT expanded — must be literal values. ENOENT
 
 - **Extracted from claude-cli** — exec tool moved from `src/mcp/shellicar/` in claude-cli to standalone package. 13 validation rules (expanded from original 7). Zod v4 schemas.
 - **Monorepo structure** — pnpm workspaces with turbo. Follows @shellicar ecosystem conventions.
+- **Zod v4 z.infer = z.input** — use `z.output` for exported types (Zod v4 changed `z.infer` to map to input type, not output).
+- **ENOENT differentiation** — exit 126 for cwd-not-found, exit 127 for program-not-found. Check cwd existence before spawning.
 <!-- END:REPO:recent-decisions -->
 
 <!-- BEGIN:REPO:extra -->
