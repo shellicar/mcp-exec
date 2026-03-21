@@ -18,7 +18,8 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
   const rules = config?.rules ?? builtinRules;
 
   const handler: ExecToolHandler = async (input) => {
-    const { allowed, errors } = validate(input.commands, rules);
+    const allCommands = input.steps.flatMap((s) => s.commands);
+    const { allowed, errors } = validate(allCommands, rules);
     if (!allowed) {
       return {
         content: [{ type: 'text', text: `BLOCKED:\n${errors.join('\n')}` }],
@@ -30,23 +31,27 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
     const result = await execute(input, cwd);
     const clean = input.stripAnsi ? stripAnsi : (s: string) => s;
 
-    const label =
-      input.commands.length === 1
-        ? input.commands[0].program
-        : `pipeline(${input.commands.map((c) => c.program).join(' | ')})`;
+    const content: TextContent[] = result.results.map((r, i) => {
+      const step = input.steps[i];
+      const cmds = step?.commands ?? [];
+      const label =
+        cmds.length === 1 ? (cmds[0]?.program ?? 'unknown') : `pipeline(${cmds.map((c) => c.program).join(' | ')})`;
 
-    const r = result.results[0];
-    const stepOutput = JSON.stringify({
-      step: 1,
-      command: label,
-      exitCode: r?.exitCode ?? undefined,
-      stdout: clean(r?.stdout ?? '').trimEnd(),
-      stderr: clean(r?.stderr ?? '').trimEnd(),
-      signal: r?.signal ?? undefined,
-    } satisfies ExecuteResult);
+      return {
+        type: 'text',
+        text: JSON.stringify({
+          step: i + 1,
+          command: label,
+          exitCode: r?.exitCode ?? undefined,
+          stdout: clean(r?.stdout ?? '').trimEnd(),
+          stderr: clean(r?.stderr ?? '').trimEnd(),
+          signal: r?.signal ?? undefined,
+        } satisfies ExecuteResult),
+      };
+    });
 
     return {
-      content: [{ type: 'text', text: stepOutput }],
+      content,
       structuredContent: { results: result.results, success: result.success } satisfies ExecOutput,
       isError: !result.success,
     };

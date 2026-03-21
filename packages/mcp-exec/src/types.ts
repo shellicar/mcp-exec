@@ -6,6 +6,7 @@ import type {
   ExecuteResultSchema,
   RedirectSchema,
   StepResultSchema,
+  StepSchema,
 } from './schema';
 
 // --- Internal types ---
@@ -14,6 +15,8 @@ export type ExecuteResult = z.infer<typeof ExecuteResultSchema>;
 
 export type Redirect = z.infer<typeof RedirectSchema>;
 export type Command = z.output<typeof CommandSchema>;
+export type Step = z.output<typeof StepSchema>;
+export type PipelineCommands = [Command, Command, ...Command[]];
 
 // --- Public API types ---
 
@@ -36,5 +39,3 @@ export interface ExecConfig {
   /** Validation rules applied before each execution. Defaults to builtinRules. */
   rules?: ExecRule[];
 }
-
-export type PipelineCommands = [Command, Command, ...Command[]];

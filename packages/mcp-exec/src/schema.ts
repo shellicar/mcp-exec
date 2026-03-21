@@ -49,12 +49,8 @@ export const CommandSchema = z.object({
     ),
 });
 
-// --- The full tool input schema ---
-export const ExecInputSchema = z.object({
-  description: z
-    .string()
-    .describe('Brief description of what these commands do')
-    .meta({ examples: ['Check git status', 'Build and run tests', 'Find all TypeScript errors'] }),
+// --- Step: one or more commands (1 = single command, 2+ = pipeline) ---
+export const StepSchema = z.object({
   commands: z
     .array(CommandSchema)
     .min(1)
@@ -69,8 +65,16 @@ export const ExecInputSchema = z.object({
           { program: 'wc', args: ['-w'] },
         ],
       ],
-    })
-    .transform((cmds) => cmds as [z.output<typeof CommandSchema>, ...z.output<typeof CommandSchema>[]]),
+    }),
+});
+
+// --- The full tool input schema ---
+export const ExecInputSchema = z.object({
+  description: z
+    .string()
+    .describe('Brief description of what these commands do')
+    .meta({ examples: ['Check git status', 'Build and run tests', 'Find all TypeScript errors'] }),
+  steps: z.array(StepSchema).min(1).describe('Commands to execute in order'),
   chaining: z
     .enum(['sequential', 'independent', 'bail_on_error'])
     .default('bail_on_error')

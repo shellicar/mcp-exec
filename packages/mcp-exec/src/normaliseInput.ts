@@ -5,7 +5,10 @@ import type { Command, ExecInput } from './types';
 export function normaliseInput(input: ExecInput): ExecInput {
   return {
     ...input,
-    commands: input.commands.map(normaliseCommand),
+    steps: input.steps.map((step) => ({
+      ...step,
+      commands: step.commands.map(normaliseCommand),
+    })),
   };
 }
 
