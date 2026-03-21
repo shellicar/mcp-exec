@@ -1,19 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { builtinRules } from '../src/builtinRules.js';
-import type { ExecRule, Step } from '../src/types.js';
+import type { Command, ExecRule } from '../src/types.js';
 import { validate } from '../src/validate.js';
 
-/** Helper: create a single command step */
-function cmd(program: string, args: string[] = []): Step {
-  return { type: 'command', program, args, merge_stderr: false };
+/** Helper: single command as Command[] */
+function cmd(program: string, args: string[] = []): Command[] {
+  return [{ program, args, merge_stderr: false }];
 }
 
-/** Helper: create a pipeline step */
-function pipeline(...commands: { program: string; args?: string[] }[]): Step {
-  return {
-    type: 'pipeline',
-    commands: commands.map((c) => ({ program: c.program, args: c.args ?? [], merge_stderr: false })),
-  };
+/** Helper: pipeline as Command[] */
+function pipeline(...commands: { program: string; args?: string[] }[]): Command[] {
+  return commands.map((c) => ({ program: c.program, args: c.args ?? [], merge_stderr: false }));
 }
 
 /** Helper: find a specific builtin rule by name */
@@ -25,9 +22,9 @@ function findRule(name: string): ExecRule {
   return rule;
 }
 
-/** Helper: validate a single step against a single rule */
-function checkRule(ruleName: string, step: Step): { allowed: boolean; errors: string[] } {
-  return validate([step], [findRule(ruleName)]);
+/** Helper: validate commands against a single rule */
+function checkRule(ruleName: string, commands: Command[]): { allowed: boolean; errors: string[] } {
+  return validate(commands, [findRule(ruleName)]);
 }
 
 describe('validation', () => {
@@ -59,8 +56,8 @@ describe('validation', () => {
     });
 
     it('blocks inside pipeline', () => {
-      const step = pipeline({ program: 'echo', args: ['y'] }, { program: 'rm', args: ['-rf', '/'] });
-      expect(checkRule('no-destructive-commands', step).allowed).toBe(false);
+      const commands = pipeline({ program: 'echo', args: ['y'] }, { program: 'rm', args: ['-rf', '/'] });
+      expect(checkRule('no-destructive-commands', commands).allowed).toBe(false);
     });
   });
 
@@ -72,8 +69,8 @@ describe('validation', () => {
     });
 
     it('blocks xargs in pipeline', () => {
-      const step = pipeline({ program: 'find', args: ['.'] }, { program: 'xargs', args: ['rm'] });
-      expect(checkRule('no-xargs', step).allowed).toBe(false);
+      const commands = pipeline({ program: 'find', args: ['.'] }, { program: 'xargs', args: ['rm'] });
+      expect(checkRule('no-xargs', commands).allowed).toBe(false);
     });
 
     it('allows non-xargs commands', () => {
@@ -113,13 +110,13 @@ describe('validation', () => {
     });
 
     it('allows sed in read-only pipeline', () => {
-      const step = pipeline({ program: 'cat', args: ['file'] }, { program: 'sed', args: ['s/a/b/'] });
-      expect(checkRule('no-sed-in-place', step).allowed).toBe(true);
+      const commands = pipeline({ program: 'cat', args: ['file'] }, { program: 'sed', args: ['s/a/b/'] });
+      expect(checkRule('no-sed-in-place', commands).allowed).toBe(true);
     });
 
     it('blocks sed -i in pipeline', () => {
-      const step = pipeline({ program: 'cat', args: ['file'] }, { program: 'sed', args: ['-i', 's/a/b/'] });
-      expect(checkRule('no-sed-in-place', step).allowed).toBe(false);
+      const commands = pipeline({ program: 'cat', args: ['file'] }, { program: 'sed', args: ['-i', 's/a/b/'] });
+      expect(checkRule('no-sed-in-place', commands).allowed).toBe(false);
     });
   });
 
@@ -210,8 +207,8 @@ describe('validation', () => {
     });
 
     it('blocks force push in pipeline', () => {
-      const step = pipeline({ program: 'echo', args: ['pushing'] }, { program: 'git', args: ['push', '--force'] });
-      expect(checkRule('no-force-push', step).allowed).toBe(false);
+      const commands = pipeline({ program: 'echo', args: ['pushing'] }, { program: 'git', args: ['push', '--force'] });
+      expect(checkRule('no-force-push', commands).allowed).toBe(false);
     });
   });
 
@@ -297,21 +294,21 @@ describe('validation', () => {
 
   describe('validate with all builtin rules', () => {
     it('allows safe commands', () => {
-      const steps: Step[] = [cmd('git', ['status']), cmd('ls', ['-la'])];
-      const result = validate(steps, builtinRules);
+      const commands = [...cmd('git', ['status']), ...cmd('ls', ['-la'])];
+      const result = validate(commands, builtinRules);
       expect(result.allowed).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('collects multiple errors from different rules', () => {
-      const steps: Step[] = [cmd('sudo', ['rm', '-rf', '/']), cmd('env')];
-      const result = validate(steps, builtinRules);
+      const commands = [...cmd('sudo', ['rm', '-rf', '/']), ...cmd('env')];
+      const result = validate(commands, builtinRules);
       expect(result.allowed).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(2);
     });
 
     it('returns errors prefixed with rule name', () => {
-      const result = validate([cmd('rm', ['file.txt'])], builtinRules);
+      const result = validate(cmd('rm', ['file.txt']), builtinRules);
       expect(result.errors[0]).toMatch(/^\[no-destructive-commands\]/);
     });
   });

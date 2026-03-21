@@ -5,7 +5,7 @@ import { execute } from './execute';
 import { normaliseInput } from './normaliseInput';
 import { ExecInputSchema, ExecOutputSchema } from './schema';
 import { stripAnsi } from './stripAnsi';
-import type { Command, ExecConfig, ExecInput, ExecOutput, ExecuteResult } from './types';
+import type { ExecConfig, ExecInput, ExecOutput, ExecuteResult } from './types';
 import { validate } from './validate';
 
 type TextContent = { type: 'text'; text: string };
@@ -18,7 +18,7 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
   const rules = config?.rules ?? builtinRules;
 
   const handler: ExecToolHandler = async (input) => {
-    const { allowed, errors } = validate(input.steps, rules);
+    const { allowed, errors } = validate(input.commands, rules);
     if (!allowed) {
       return {
         content: [{ type: 'text', text: `BLOCKED:\n${errors.join('\n')}` }],
@@ -30,28 +30,24 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
     const result = await execute(input, cwd);
     const clean = input.stripAnsi ? stripAnsi : (s: string) => s;
 
-    const content = input.steps.map((step, i) => {
-      const r = result.results[i];
-      const label =
-        step.type === 'command'
-          ? step.program
-          : `pipeline(${step.commands.map((c: Command) => c.program).join(' | ')})`;
+    const label =
+      input.commands.length === 1
+        ? input.commands[0].program
+        : `pipeline(${input.commands.map((c) => c.program).join(' | ')})`;
 
-      const stepOutput = JSON.stringify({
-        step: i + 1,
-        command: label,
-        exitCode: r?.exitCode ?? undefined,
-        stdout: clean(r?.stdout ?? '').trimEnd(),
-        stderr: clean(r?.stderr ?? '').trimEnd(),
-        signal: r?.signal ?? undefined,
-      } satisfies ExecuteResult);
-
-      return { type: 'text' as const, text: stepOutput };
-    });
+    const r = result.results[0];
+    const stepOutput = JSON.stringify({
+      step: 1,
+      command: label,
+      exitCode: r?.exitCode ?? undefined,
+      stdout: clean(r?.stdout ?? '').trimEnd(),
+      stderr: clean(r?.stderr ?? '').trimEnd(),
+      signal: r?.signal ?? undefined,
+    } satisfies ExecuteResult);
 
     return {
-      content: content.length > 0 ? content : [{ type: 'text', text: '(no output)' }],
-      structuredContent: { results: result.results, success: result.success },
+      content: [{ type: 'text', text: stepOutput }],
+      structuredContent: { results: result.results, success: result.success } satisfies ExecOutput,
       isError: !result.success,
     };
   };

@@ -110,8 +110,8 @@ import type { ExecRule } from '@shellicar/mcp-exec';
 
 const noNpm: ExecRule = {
   name: 'no-npm',
-  check: (step) => {
-    if (step.type === 'command' && step.program === 'npm') {
+  check: (commands) => {
+    if (commands.some((c) => c.program === 'npm')) {
       return 'Use pnpm instead of npm.';
     }
     return undefined;

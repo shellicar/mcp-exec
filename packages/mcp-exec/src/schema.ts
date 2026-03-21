@@ -49,28 +49,28 @@ export const CommandSchema = z.object({
     ),
 });
 
-// --- Pipeline: commands connected by pipes ---
-export const PipelineSchema = z.object({
-  type: z.literal('pipeline'),
-  commands: z.array(CommandSchema).min(2).describe('Commands connected by pipes (stdout → stdin)'),
-});
-
-// --- Single command (no piping) ---
-export const SingleCommandSchema = z.object({
-  type: z.literal('command'),
-  ...CommandSchema.shape,
-});
-
-// --- A step is either a single command or a pipeline ---
-export const StepSchema = z.discriminatedUnion('type', [SingleCommandSchema, PipelineSchema]);
-
 // --- The full tool input schema ---
 export const ExecInputSchema = z.object({
   description: z
     .string()
     .describe('Brief description of what these commands do')
     .meta({ examples: ['Check git status', 'Build and run tests', 'Find all TypeScript errors'] }),
-  steps: z.array(StepSchema).min(1).describe('Commands to execute in order'),
+  commands: z
+    .array(CommandSchema)
+    .min(1)
+    .describe(
+      'Commands to execute. A single command runs directly; two or more commands are connected as a pipeline (stdout → stdin).',
+    )
+    .meta({
+      examples: [
+        [{ program: 'git', args: ['status'] }],
+        [
+          { program: 'echo', args: ['hello'] },
+          { program: 'wc', args: ['-w'] },
+        ],
+      ],
+    })
+    .transform((cmds) => cmds as [z.output<typeof CommandSchema>, ...z.output<typeof CommandSchema>[]]),
   chaining: z
     .enum(['sequential', 'independent', 'bail_on_error'])
     .default('bail_on_error')

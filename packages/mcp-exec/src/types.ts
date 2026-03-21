@@ -4,11 +4,8 @@ import type {
   ExecInputSchema,
   ExecOutputSchema,
   ExecuteResultSchema,
-  PipelineSchema,
   RedirectSchema,
-  SingleCommandSchema,
   StepResultSchema,
-  StepSchema,
 } from './schema';
 
 // --- Internal types ---
@@ -17,9 +14,6 @@ export type ExecuteResult = z.infer<typeof ExecuteResultSchema>;
 
 export type Redirect = z.infer<typeof RedirectSchema>;
 export type Command = z.output<typeof CommandSchema>;
-export type Pipeline = z.output<typeof PipelineSchema>;
-export type SingleCommand = z.output<typeof SingleCommandSchema>;
-export type Step = z.output<typeof StepSchema>;
 
 // --- Public API types ---
 
@@ -27,12 +21,12 @@ export type Step = z.output<typeof StepSchema>;
 export type ExecInput = z.output<typeof ExecInputSchema>;
 export type ExecOutput = z.infer<typeof ExecOutputSchema>;
 
-/** A validation rule applied to each step before execution. */
+/** A validation rule applied to each command before execution. */
 export interface ExecRule {
   /** Rule name for error messages */
   name: string;
   /** Return error message if blocked, undefined if allowed */
-  check: (step: Step) => string | undefined;
+  check: (commands: Command[]) => string | undefined;
 }
 
 /** Configuration for the exec tool and server. */
@@ -42,3 +36,5 @@ export interface ExecConfig {
   /** Validation rules applied before each execution. Defaults to builtinRules. */
   rules?: ExecRule[];
 }
+
+export type PipelineCommands = [Command, Command, ...Command[]];

@@ -1,14 +1,12 @@
-import type { ExecRule, Step } from './types';
+import type { Command, ExecRule } from './types';
 
-/** Validate all steps against a set of rules. */
-export function validate(steps: Step[], rules: ExecRule[]): { allowed: boolean; errors: string[] } {
+/** Validate commands against a set of rules. */
+export function validate(commands: Command[], rules: ExecRule[]): { allowed: boolean; errors: string[] } {
   const errors: string[] = [];
-  for (const step of steps) {
-    for (const rule of rules) {
-      const error = rule.check(step);
-      if (error) {
-        errors.push(`[${rule.name}] ${error}`);
-      }
+  for (const rule of rules) {
+    const error = rule.check(commands);
+    if (error) {
+      errors.push(`[${rule.name}] ${error}`);
     }
   }
   return { allowed: errors.length === 0, errors };

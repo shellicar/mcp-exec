@@ -1,19 +1,16 @@
-import { execStep } from './execStep';
+import { execCommand } from './execCommand';
+import { execPipeline } from './execPipeline';
 import type { ExecInput, ExecOutput, StepResult } from './types';
 
-/** Execute all steps according to the chaining strategy. */
+/** Execute commands: single command if one, pipeline if two or more. */
 export async function execute(input: ExecInput, cwd: string): Promise<ExecOutput> {
-  const results: StepResult[] = [];
-
-  for (const step of input.steps) {
-    const result = await execStep(step, cwd, input.timeout);
-    results.push(result);
-
-    if (input.chaining === 'bail_on_error' && result.exitCode !== 0) {
-      return { results, success: false };
-    }
+  let result: StepResult | undefined;
+  const [c1, c2, ...rest] = input.commands;
+  if (c2 == null) {
+    result = await execCommand(c1, cwd, input.timeout);
+  } else {
+    result = await execPipeline([c1, c2, ...rest], cwd, input.timeout);
   }
 
-  const success = results.every((r) => r.exitCode === 0);
-  return { results, success };
+  return { results: [result], success: result.exitCode === 0 };
 }

@@ -1,44 +1,40 @@
 import { homedir } from 'node:os';
 import { describe, expect, it } from 'vitest';
 import { normaliseInput } from '../src/normaliseInput';
-import type { ExecInput } from '../src/types';
+import type { Command, ExecInput } from '../src/types';
 
-function makeInput(steps: ExecInput['steps']): ExecInput {
-  return { description: 'test', steps, chaining: 'bail_on_error', background: false, stripAnsi: true };
+function makeInput(commands: [Command, ...Command[]]): ExecInput {
+  return {
+    description: 'test',
+    commands,
+    chaining: 'bail_on_error',
+    background: false,
+    stripAnsi: true,
+  };
 }
 
 describe('normaliseInput', () => {
   describe('program expansion', () => {
     it('expands ~ in program', () => {
-      const result = normaliseInput(
-        makeInput([{ type: 'command', program: '~/bin/foo', args: [], merge_stderr: false }]),
-      );
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.program).toBe(`${homedir()}/bin/foo`);
+      const result = normaliseInput(makeInput([{ program: '~/bin/foo', args: [], merge_stderr: false }]));
+      expect(result.commands[0]?.program).toBe(`${homedir()}/bin/foo`);
     });
 
     it('expands $HOME in program', () => {
-      const result = normaliseInput(
-        makeInput([{ type: 'command', program: '$HOME/bin/foo', args: [], merge_stderr: false }]),
-      );
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.program).toBe(`${process.env['HOME']}/bin/foo`);
+      const result = normaliseInput(makeInput([{ program: '$HOME/bin/foo', args: [], merge_stderr: false }]));
+      expect(result.commands[0]?.program).toBe(`${process.env['HOME']}/bin/foo`);
     });
   });
 
   describe('cwd expansion', () => {
     it('expands ~ in cwd', () => {
-      const result = normaliseInput(
-        makeInput([{ type: 'command', program: 'echo', args: [], merge_stderr: false, cwd: '~/projects' }]),
-      );
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.cwd).toBe(`${homedir()}/projects`);
+      const result = normaliseInput(makeInput([{ program: 'echo', args: [], merge_stderr: false, cwd: '~/projects' }]));
+      expect(result.commands[0]?.cwd).toBe(`${homedir()}/projects`);
     });
 
     it('leaves cwd undefined when not set', () => {
-      const result = normaliseInput(makeInput([{ type: 'command', program: 'echo', args: [], merge_stderr: false }]));
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.cwd).toBeUndefined();
+      const result = normaliseInput(makeInput([{ program: 'echo', args: [], merge_stderr: false }]));
+      expect(result.commands[0]?.cwd).toBeUndefined();
     });
   });
 
@@ -47,7 +43,6 @@ describe('normaliseInput', () => {
       const result = normaliseInput(
         makeInput([
           {
-            type: 'command',
             program: 'echo',
             args: [],
             merge_stderr: false,
@@ -55,26 +50,19 @@ describe('normaliseInput', () => {
           },
         ]),
       );
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.redirect?.path).toBe(`${homedir()}/output.txt`);
+      expect(result.commands[0]?.redirect?.path).toBe(`${homedir()}/output.txt`);
     });
   });
 
   describe('args are NOT expanded', () => {
     it('does not expand ~ in args', () => {
-      const result = normaliseInput(
-        makeInput([{ type: 'command', program: 'echo', args: ['~/file.txt'], merge_stderr: false }]),
-      );
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.args[0]).toBe('~/file.txt');
+      const result = normaliseInput(makeInput([{ program: 'echo', args: ['~/file.txt'], merge_stderr: false }]));
+      expect(result.commands[0]?.args[0]).toBe('~/file.txt');
     });
 
     it('does not expand $HOME in args', () => {
-      const result = normaliseInput(
-        makeInput([{ type: 'command', program: 'echo', args: ['$HOME/file.txt'], merge_stderr: false }]),
-      );
-      const step = result.steps[0];
-      expect(step?.type === 'command' && step.args[0]).toBe('$HOME/file.txt');
+      const result = normaliseInput(makeInput([{ program: 'echo', args: ['$HOME/file.txt'], merge_stderr: false }]));
+      expect(result.commands[0]?.args[0]).toBe('$HOME/file.txt');
     });
   });
 
@@ -82,39 +70,23 @@ describe('normaliseInput', () => {
     it('expands program and cwd in pipeline commands', () => {
       const result = normaliseInput(
         makeInput([
-          {
-            type: 'pipeline',
-            commands: [
-              { program: '~/bin/grep', args: ['-r', 'TODO'], merge_stderr: false, cwd: '~/src' },
-              { program: 'wc', args: ['-l'], merge_stderr: false },
-            ],
-          },
+          { program: '~/bin/grep', args: ['-r', 'TODO'], merge_stderr: false, cwd: '~/src' },
+          { program: 'wc', args: ['-l'], merge_stderr: false },
         ]),
       );
-      const step = result.steps[0];
-      if (step?.type === 'pipeline') {
-        expect(step.commands[0]?.program).toBe(`${homedir()}/bin/grep`);
-        expect(step.commands[0]?.cwd).toBe(`${homedir()}/src`);
-        expect(step.commands[1]?.program).toBe('wc');
-      }
+      expect(result.commands[0]?.program).toBe(`${homedir()}/bin/grep`);
+      expect(result.commands[0]?.cwd).toBe(`${homedir()}/src`);
+      expect(result.commands[1]?.program).toBe('wc');
     });
 
     it('does not expand args in pipeline commands', () => {
       const result = normaliseInput(
         makeInput([
-          {
-            type: 'pipeline',
-            commands: [
-              { program: 'grep', args: ['-r', '$HOME'], merge_stderr: false },
-              { program: 'wc', args: ['-l'], merge_stderr: false },
-            ],
-          },
+          { program: 'grep', args: ['-r', '$HOME'], merge_stderr: false },
+          { program: 'wc', args: ['-l'], merge_stderr: false },
         ]),
       );
-      const step = result.steps[0];
-      if (step?.type === 'pipeline') {
-        expect(step.commands[0]?.args[1]).toBe('$HOME');
-      }
+      expect(result.commands[0]?.args[1]).toBe('$HOME');
     });
   });
 });
