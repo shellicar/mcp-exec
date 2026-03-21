@@ -3,9 +3,9 @@ import { builtinRules } from '../src/builtinRules.js';
 import type { Command, ExecRule } from '../src/types.js';
 import { validate } from '../src/validate.js';
 
-/** Helper: single command as Command[] */
-function cmd(program: string, args: string[] = []): Command[] {
-  return [{ program, args, merge_stderr: false }];
+/** Helper: single command */
+function cmd(program: string, args: string[] = []): Command {
+  return { program, args, merge_stderr: false };
 }
 
 /** Helper: pipeline as Command[] */
@@ -23,7 +23,7 @@ function findRule(name: string): ExecRule {
 }
 
 /** Helper: validate commands against a single rule */
-function checkRule(ruleName: string, commands: Command[]): { allowed: boolean; errors: string[] } {
+function checkRule(ruleName: string, ...commands: Command[]): { allowed: boolean; errors: string[] } {
   return validate(commands, [findRule(ruleName)]);
 }
 
@@ -57,7 +57,7 @@ describe('validation', () => {
 
     it('blocks inside pipeline', () => {
       const commands = pipeline({ program: 'echo', args: ['y'] }, { program: 'rm', args: ['-rf', '/'] });
-      expect(checkRule('no-destructive-commands', commands).allowed).toBe(false);
+      expect(checkRule('no-destructive-commands', ...commands).allowed).toBe(false);
     });
   });
 
@@ -70,7 +70,7 @@ describe('validation', () => {
 
     it('blocks xargs in pipeline', () => {
       const commands = pipeline({ program: 'find', args: ['.'] }, { program: 'xargs', args: ['rm'] });
-      expect(checkRule('no-xargs', commands).allowed).toBe(false);
+      expect(checkRule('no-xargs', ...commands).allowed).toBe(false);
     });
 
     it('allows non-xargs commands', () => {
@@ -111,12 +111,12 @@ describe('validation', () => {
 
     it('allows sed in read-only pipeline', () => {
       const commands = pipeline({ program: 'cat', args: ['file'] }, { program: 'sed', args: ['s/a/b/'] });
-      expect(checkRule('no-sed-in-place', commands).allowed).toBe(true);
+      expect(checkRule('no-sed-in-place', ...commands).allowed).toBe(true);
     });
 
     it('blocks sed -i in pipeline', () => {
       const commands = pipeline({ program: 'cat', args: ['file'] }, { program: 'sed', args: ['-i', 's/a/b/'] });
-      expect(checkRule('no-sed-in-place', commands).allowed).toBe(false);
+      expect(checkRule('no-sed-in-place', ...commands).allowed).toBe(false);
     });
   });
 
@@ -208,7 +208,7 @@ describe('validation', () => {
 
     it('blocks force push in pipeline', () => {
       const commands = pipeline({ program: 'echo', args: ['pushing'] }, { program: 'git', args: ['push', '--force'] });
-      expect(checkRule('no-force-push', commands).allowed).toBe(false);
+      expect(checkRule('no-force-push', ...commands).allowed).toBe(false);
     });
   });
 
@@ -294,21 +294,21 @@ describe('validation', () => {
 
   describe('validate with all builtin rules', () => {
     it('allows safe commands', () => {
-      const commands = [...cmd('git', ['status']), ...cmd('ls', ['-la'])];
+      const commands = [cmd('git', ['status']), cmd('ls', ['-la'])];
       const result = validate(commands, builtinRules);
       expect(result.allowed).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('collects multiple errors from different rules', () => {
-      const commands = [...cmd('sudo', ['rm', '-rf', '/']), ...cmd('env')];
+      const commands = [cmd('sudo', ['rm', '-rf', '/']), cmd('env')];
       const result = validate(commands, builtinRules);
       expect(result.allowed).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(2);
     });
 
     it('returns errors prefixed with rule name', () => {
-      const result = validate(cmd('rm', ['file.txt']), builtinRules);
+      const result = validate([cmd('rm', ['file.txt'])], builtinRules);
       expect(result.errors[0]).toMatch(/^\[no-destructive-commands\]/);
     });
   });
