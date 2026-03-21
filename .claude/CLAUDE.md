@@ -72,8 +72,8 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `fix/structured-output` — PR #8 open, awaiting review, auto squash merge enabled.
-Released: `1.0.0-preview.2` on npm. `1.0.0-preview.3` staged — will publish on PR merge.
+Branch: `feature/simplify-schema` — PR #10 open, corrected with steps array and chaining logic restored.
+Released: `1.0.0-preview.2` on npm. `1.0.0-preview.3` staged on `fix/structured-output` (PR #8).
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
@@ -104,9 +104,8 @@ Released: `1.0.0-preview.2` on npm. `1.0.0-preview.3` staged — will publish on
 | `schema.ts` | Input/output Zod schemas |
 | `types.ts` | TypeScript types (inferred from schemas) |
 | `builtinRules.ts` | 13 built-in validation rules |
-| `validate.ts` | Rule runner — checks all rules against all steps |
+| `validate.ts` | Rule runner — checks all rules against flat Command[] |
 | `hasShortFlag.ts` | Short flag detection helper |
-| `extractCommands.ts` | Extract Command objects from Step (for validation) |
 | `stripAnsi.ts` | ANSI escape sequence removal |
 | `consts.ts` | Tool name, server name, description |
 | `entry/cli.ts` | CLI entry point (bin: `mcp-exec`) |
@@ -192,6 +191,8 @@ Globs, tilde, `$VAR` in args are NOT expanded — must be literal values. ENOENT
 - **ENOENT differentiation** — exit 126 for cwd-not-found, exit 127 for program-not-found. Check cwd existence before spawning.
 - **Normalisation layer** — path expansion (`~`, `$VAR`) happens in `normaliseInput.ts` before validation and execution. Only `program`, `cwd`, and `redirect.path` are expanded; `args` are not.
 - **merge_stderr on all commands** — `merge_stderr` applies to single commands and pipeline commands equally. No pipeline-only restriction.
+- **Schema simplification** — replaced discriminated union (`type: 'command'` / `type: 'pipeline'`) with `StepSchema.commands[]` where length derives behaviour (1 = single, 2+ = pipeline). Steps array and chaining preserved.
+- **Step-agnostic validation** — rules see a flat `Command[]` via `flatMap` across all steps. No rule needs to know which step a command belongs to.
 <!-- END:REPO:recent-decisions -->
 
 <!-- BEGIN:REPO:extra -->
