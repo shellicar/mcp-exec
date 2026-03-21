@@ -5,9 +5,6 @@ import type { Step, StepResult } from './types';
 /** Execute a single step: one command runs directly, two or more form a pipeline. */
 export async function execStep(step: Step, cwd: string, timeoutMs?: number): Promise<StepResult> {
   const [first, second, ...rest] = step.commands;
-  if (first == null) {
-    throw new Error('Step must have at least one command');
-  }
   if (second == null) {
     return execCommand(first, cwd, timeoutMs);
   }

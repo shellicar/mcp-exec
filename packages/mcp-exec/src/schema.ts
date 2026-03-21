@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Command } from './types';
 
 // --- Redirect: structured output redirection ---
 export const RedirectSchema = z.object({
@@ -54,6 +55,7 @@ export const StepSchema = z.object({
   commands: z
     .array(CommandSchema)
     .min(1)
+    .transform((x) => x as [Command, ...Command[]])
     .describe(
       'Commands to execute. A single command runs directly; two or more commands are connected as a pipeline (stdout → stdin).',
     )
