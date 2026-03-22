@@ -11,8 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- Replaced discriminated union (`type: 'command'` / `type: 'pipeline'`) with a unified `commands` array on the input schema. Single command: one element; pipeline: two or more elements connected via stdout→stdin. The `type` field is removed entirely.
-- `steps` field renamed to `commands` on `ExecInputSchema`
+- Replaced discriminated union (`type: 'command'` / `type: 'pipeline'`) with a unified `commands` array on each step. Single command: one element; pipeline: two or more elements connected via stdout→stdin. The `type` field is removed entirely.
 - `ExecRule.check` now receives `Command[]` instead of a `Step`
 
 ## [1.0.0-preview.3] - 2026-03-20
