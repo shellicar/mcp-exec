@@ -5,24 +5,19 @@ import type { Command, ExecInput } from './types';
 export function normaliseInput(input: ExecInput): ExecInput {
   return {
     ...input,
-    steps: input.steps.map((step) => {
-      if (step.type === 'command') {
-        const { type, ...cmd } = step;
-        return { type, ...normaliseCommand(cmd) };
-      }
-      return {
-        ...step,
-        commands: step.commands.map(normaliseCommand),
-      };
-    }),
+    steps: input.steps.map((step) => ({
+      ...step,
+      commands: step.commands.map(normaliseCommand),
+    })),
   };
 }
 
 function normaliseCommand(cmd: Command): Command {
+  const { program, cwd, redirect, ...rest } = cmd;
   return {
-    ...cmd,
-    program: expandPath(cmd.program),
-    cwd: cmd.cwd !== undefined ? expandPath(cmd.cwd) : undefined,
-    redirect: cmd.redirect !== undefined ? { ...cmd.redirect, path: expandPath(cmd.redirect.path) } : undefined,
+    ...rest,
+    program: expandPath(program),
+    cwd: expandPath(cwd),
+    redirect: redirect && { ...redirect, path: expandPath(redirect.path) },
   };
 }

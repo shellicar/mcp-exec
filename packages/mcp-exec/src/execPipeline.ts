@@ -1,10 +1,10 @@
 import { spawn } from 'node:child_process';
 import { createWriteStream, existsSync } from 'node:fs';
 import { PassThrough } from 'node:stream';
-import type { Command, StepResult } from './types';
+import type { PipelineCommands, StepResult } from './types';
 
 /** Execute a pipeline of commands with stdout→stdin piping. */
-export async function execPipeline(commands: Command[], cwd: string, timeoutMs?: number): Promise<StepResult> {
+export async function execPipeline(commands: PipelineCommands, cwd: string, timeoutMs?: number): Promise<StepResult> {
   if (commands.length === 0) {
     return { stdout: '', stderr: '', exitCode: 0, signal: null };
   }

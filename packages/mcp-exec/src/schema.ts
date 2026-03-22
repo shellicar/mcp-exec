@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Command } from './types';
 
 // --- Redirect: structured output redirection ---
 export const RedirectSchema = z.object({
@@ -49,20 +50,25 @@ export const CommandSchema = z.object({
     ),
 });
 
-// --- Pipeline: commands connected by pipes ---
-export const PipelineSchema = z.object({
-  type: z.literal('pipeline'),
-  commands: z.array(CommandSchema).min(2).describe('Commands connected by pipes (stdout → stdin)'),
+// --- Step: one or more commands (1 = single command, 2+ = pipeline) ---
+export const StepSchema = z.object({
+  commands: z
+    .array(CommandSchema)
+    .min(1)
+    .transform((x) => x as [Command, ...Command[]])
+    .describe(
+      'Commands to execute. A single command runs directly; two or more commands are connected as a pipeline (stdout → stdin).',
+    )
+    .meta({
+      examples: [
+        [{ program: 'git', args: ['status'] }],
+        [
+          { program: 'echo', args: ['hello'] },
+          { program: 'wc', args: ['-w'] },
+        ],
+      ],
+    }),
 });
-
-// --- Single command (no piping) ---
-export const SingleCommandSchema = z.object({
-  type: z.literal('command'),
-  ...CommandSchema.shape,
-});
-
-// --- A step is either a single command or a pipeline ---
-export const StepSchema = z.discriminatedUnion('type', [SingleCommandSchema, PipelineSchema]);
 
 // --- The full tool input schema ---
 export const ExecInputSchema = z.object({

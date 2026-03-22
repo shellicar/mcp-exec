@@ -96,7 +96,8 @@
         "**/inject/*.ts",
         "**/entry/*.ts",
         "**/scripts/**",
-        "**/*.spec.ts"
+        "**/*.spec.ts",
+        "**/src/*.d.ts"
       ],
       "linter": {
         "rules": {

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-preview.4] - 2026-03-22
+
+### Breaking Changes
+
+- Replaced discriminated union (`type: 'command'` / `type: 'pipeline'`) with a unified `commands` array on each step. Single command: one element; pipeline: two or more elements connected via stdout→stdin. The `type` field is removed entirely.
+- `ExecRule.check` now receives `Command[]` instead of a `Step`
+
 ## [1.0.0-preview.3] - 2026-03-20
 
 ### Fixed
@@ -30,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built-in validation rules blocking destructive operations including rm, sed -i, git reset, force push, xargs, and sudo
 - Pluggable rule system for custom validation
 
+[1.0.0-preview.4]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.4
 [1.0.0-preview.3]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.3
 [1.0.0-preview.2]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.2
 [1.0.0-preview.1]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.1

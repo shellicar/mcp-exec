@@ -24,7 +24,7 @@ describe('integration', () => {
       name: 'exec' as const,
       arguments: {
         description: 'echo hello',
-        steps: [{ type: 'command', program: 'echo', args: ['hello'] }],
+        steps: [{ commands: [{ program: 'echo', args: ['hello'] }] }],
       },
     };
   }
@@ -79,6 +79,19 @@ describe('integration', () => {
     });
   });
 
+  describe('schema validation', () => {
+    it('returns an error for empty steps array', async () => {
+      const c = await setup();
+      const result = await c.callTool({
+        name: 'exec',
+        arguments: { description: 'empty', steps: [] },
+      });
+      expect(result.isError).toBe(true);
+      const content = result.content as { type: string; text: string }[];
+      expect(content[0]?.text).toContain('steps');
+    });
+  });
+
   describe('blocked command', () => {
     it('returns error when command is blocked by validation rules', async () => {
       const c = await setup();
@@ -86,7 +99,7 @@ describe('integration', () => {
         name: 'exec',
         arguments: {
           description: 'try rm',
-          steps: [{ type: 'command', program: 'rm', args: ['-rf', '/'] }],
+          steps: [{ commands: [{ program: 'rm', args: ['-rf', '/'] }] }],
         },
       });
 
