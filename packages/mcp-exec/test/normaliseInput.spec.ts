@@ -1,9 +1,11 @@
-import { homedir } from 'node:os';
 import { describe, expect, it } from 'vitest';
 import { normaliseInput } from '../src/normaliseInput';
-import type { Command, ExecInput } from '../src/types';
+import type { Command, ExecInput, Step } from '../src/types';
 
-function makeInput(steps: { commands: Command[] }[]): ExecInput {
+const HOME = '/fake/home';
+const opts = { home: HOME };
+
+function makeInput(steps: Step[]): ExecInput {
   return {
     description: 'test',
     steps,
@@ -20,24 +22,24 @@ function cmd(program: string, args: string[] = [], extra?: Partial<Command>): Co
 describe('normaliseInput', () => {
   describe('program expansion', () => {
     it('expands ~ in program', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('~/bin/foo')] }]));
-      expect(result.steps[0]?.commands[0]?.program).toBe(`${homedir()}/bin/foo`);
+      const result = normaliseInput(makeInput([{ commands: [cmd('~/bin/foo')] }]), opts);
+      expect(result.steps[0]?.commands[0]?.program).toBe(`${HOME}/bin/foo`);
     });
 
     it('expands $HOME in program', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('$HOME/bin/foo')] }]));
+      const result = normaliseInput(makeInput([{ commands: [cmd('$HOME/bin/foo')] }]), opts);
       expect(result.steps[0]?.commands[0]?.program).toBe(`${process.env['HOME']}/bin/foo`);
     });
   });
 
   describe('cwd expansion', () => {
     it('expands ~ in cwd', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('echo', [], { cwd: '~/projects' })] }]));
-      expect(result.steps[0]?.commands[0]?.cwd).toBe(`${homedir()}/projects`);
+      const result = normaliseInput(makeInput([{ commands: [cmd('echo', [], { cwd: '~/projects' })] }]), opts);
+      expect(result.steps[0]?.commands[0]?.cwd).toBe(`${HOME}/projects`);
     });
 
     it('leaves cwd undefined when not set', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('echo')] }]));
+      const result = normaliseInput(makeInput([{ commands: [cmd('echo')] }]), opts);
       expect(result.steps[0]?.commands[0]?.cwd).toBeUndefined();
     });
   });
@@ -52,19 +54,20 @@ describe('normaliseInput', () => {
             ],
           },
         ]),
+        opts,
       );
-      expect(result.steps[0]?.commands[0]?.redirect?.path).toBe(`${homedir()}/output.txt`);
+      expect(result.steps[0]?.commands[0]?.redirect?.path).toBe(`${HOME}/output.txt`);
     });
   });
 
   describe('args are NOT expanded', () => {
     it('does not expand ~ in args', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('echo', ['~/file.txt'])] }]));
+      const result = normaliseInput(makeInput([{ commands: [cmd('echo', ['~/file.txt'])] }]), opts);
       expect(result.steps[0]?.commands[0]?.args[0]).toBe('~/file.txt');
     });
 
     it('does not expand $HOME in args', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('echo', ['$HOME/file.txt'])] }]));
+      const result = normaliseInput(makeInput([{ commands: [cmd('echo', ['$HOME/file.txt'])] }]), opts);
       expect(result.steps[0]?.commands[0]?.args[0]).toBe('$HOME/file.txt');
     });
   });
@@ -73,14 +76,15 @@ describe('normaliseInput', () => {
     it('expands program and cwd in pipeline commands', () => {
       const result = normaliseInput(
         makeInput([{ commands: [cmd('~/bin/grep', ['-r', 'TODO'], { cwd: '~/src' }), cmd('wc', ['-l'])] }]),
+        opts,
       );
-      expect(result.steps[0]?.commands[0]?.program).toBe(`${homedir()}/bin/grep`);
-      expect(result.steps[0]?.commands[0]?.cwd).toBe(`${homedir()}/src`);
+      expect(result.steps[0]?.commands[0]?.program).toBe(`${HOME}/bin/grep`);
+      expect(result.steps[0]?.commands[0]?.cwd).toBe(`${HOME}/src`);
       expect(result.steps[0]?.commands[1]?.program).toBe('wc');
     });
 
     it('does not expand args in pipeline commands', () => {
-      const result = normaliseInput(makeInput([{ commands: [cmd('grep', ['-r', '$HOME']), cmd('wc', ['-l'])] }]));
+      const result = normaliseInput(makeInput([{ commands: [cmd('grep', ['-r', '$HOME']), cmd('wc', ['-l'])] }]), opts);
       expect(result.steps[0]?.commands[0]?.args[1]).toBe('$HOME');
     });
   });

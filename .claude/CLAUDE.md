@@ -72,8 +72,7 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `feature/simplify-schema` — PR #10 open, corrected with steps array and chaining logic restored.
-Released: `1.0.0-preview.2` on npm. `1.0.0-preview.3` staged on `fix/structured-output` (PR #8).
+Branch: `main`. `1.0.0-preview.5` prepared, pending PR and release.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->

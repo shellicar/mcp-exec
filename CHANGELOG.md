@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-preview.5] - 2026-03-24
+
+### Added
+
+- `normaliseInput`, `normaliseCommand`, and `expandPath` exported from the package
+- Home directory can be overridden when normalising paths, enabling unit testing without OS mocking
+
+### Fixed
+
+- Tool description shown to MCP clients was stale and contained incorrect examples
+
 ## [1.0.0-preview.4] - 2026-03-22
 
 ### Breaking Changes
@@ -37,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built-in validation rules blocking destructive operations including rm, sed -i, git reset, force push, xargs, and sudo
 - Pluggable rule system for custom validation
 
+[1.0.0-preview.5]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.5
 [1.0.0-preview.4]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.4
 [1.0.0-preview.3]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.3
 [1.0.0-preview.2]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.2
