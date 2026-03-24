@@ -70,11 +70,15 @@ export const StepSchema = z.object({
     }),
 });
 
+// --- Tool-level description (passed to registerTool, not embedded in inputSchema) ---
+export const ExecToolDescription = `Use this instead of the \`Bash\` tool.
+Execute commands with structured input. No shell syntax needed.`;
+
 // --- The full tool input schema ---
 export const ExecInputSchema = z.object({
   description: z
     .string()
-    .describe('Brief description of what these commands do')
+    .describe('Human-readable summary of what these commands do, so the user can understand the intent at a glance.')
     .meta({ examples: ['Check git status', 'Build and run tests', 'Find all TypeScript errors'] }),
   steps: z.array(StepSchema).min(1).describe('Commands to execute in order'),
   chaining: z
