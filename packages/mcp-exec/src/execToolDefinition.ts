@@ -1,9 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { builtinRules } from './builtinRules';
-import { ExecToolDescription, ExecToolName } from './consts';
+import { ExecToolName } from './consts';
 import { execute } from './execute';
 import { normaliseInput } from './normaliseInput';
-import { ExecInputSchema, ExecOutputSchema } from './schema';
+import { ExecInputSchema, ExecOutputSchema, ExecToolDescription } from './schema';
 import { stripAnsi } from './stripAnsi';
 import type { ExecConfig, ExecInput, ExecOutput, ExecuteResult } from './types';
 import { validate } from './validate';
