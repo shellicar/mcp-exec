@@ -20,10 +20,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
+    "@vitest/coverage-v8": "^4.1.1",
     "lefthook": "^2.1.4",
     "npm-check-updates": "^19.6.5",
     "syncpack": "^14.2.0",
     "turbo": "^2.8.19",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.1"
   }
 }
