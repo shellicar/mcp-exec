@@ -16,7 +16,7 @@ export const CommandSchema = z.object({
   program: z
     .string()
     .describe(
-      'The program, binary, or script path to execute. Supports ~ and $VAR expansion. Must be on $PATH or an absolute path — no shell expansion of globs or operators.',
+      'The program, binary, or script path to execute. Supports ~ and $VAR expansion. Must be on $PATH or an absolute path. Do NOT use bash, sh, zsh, or any shell as the program. This tool exists specifically to replace shell execution: passing a shell here defeats the purpose and reintroduces all the risks this tool is designed to prevent. Run the target program directly.',
     )
     .meta({ examples: ['git', 'node', '~/.local/bin/script.sh'] }),
   args: z
