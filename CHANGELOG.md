@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-preview.6] - 2026-03-27
+
+### Changed
+
+- Strict schema validation (`.strict()`) on all input objects for better small-model compatibility (#20)
+- Example added to tool description (#20)
+- Content and structuredContent derived from a single canonical result (#13)
+
+### Fixed
+
+- ANSI escape codes not stripped from structuredContent output (#12)
+
+### Security
+
+- picomatch CVE-2026-33671 (ReDoS) and CVE-2026-33672 (method injection) resolved via pnpm override
+
 ## [1.0.0-preview.5] - 2026-03-24
 
 ### Added
@@ -48,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built-in validation rules blocking destructive operations including rm, sed -i, git reset, force push, xargs, and sudo
 - Pluggable rule system for custom validation
 
+[1.0.0-preview.6]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.6
 [1.0.0-preview.5]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.5
 [1.0.0-preview.4]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.4
 [1.0.0-preview.3]: https://github.com/shellicar/mcp-exec/releases/tag/1.0.0-preview.3
