@@ -5,7 +5,7 @@ import { execute } from './execute';
 import { normaliseInput } from './normaliseInput';
 import { ExecInputSchema, ExecOutputSchema, ExecToolDescription } from './schema';
 import { stripAnsi } from './stripAnsi';
-import type { ExecConfig, ExecInput, ExecOutput, ExecuteResult } from './types';
+import type { ExecConfig, ExecInput, ExecOutput } from './types';
 import { validate } from './validate';
 
 type TextContent = { type: 'text'; text: string };
@@ -31,34 +31,18 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
     const result = await execute(input, cwd);
     const clean = input.stripAnsi ? stripAnsi : (s: string) => s;
 
-    const content: TextContent[] = result.results.map((r, i) => {
-      const step = input.steps[i];
-      const cmds = step?.commands ?? [];
-      const label =
-        cmds.length === 1 ? (cmds[0]?.program ?? 'unknown') : `pipeline(${cmds.map((c) => c.program).join(' | ')})`;
-
-      return {
-        type: 'text',
-        text: JSON.stringify({
-          step: i + 1,
-          command: label,
-          exitCode: r?.exitCode ?? undefined,
-          stdout: clean(r?.stdout ?? '').trimEnd(),
-          stderr: clean(r?.stderr ?? '').trimEnd(),
-          signal: r?.signal ?? undefined,
-        } satisfies ExecuteResult),
-      };
-    });
-
-    const cleanedResults = result.results.map((r) => ({
-      ...r,
-      stdout: clean(r.stdout).trimEnd(),
-      stderr: clean(r.stderr).trimEnd(),
-    }));
+    const canonical: ExecOutput = {
+      results: result.results.map((r) => ({
+        ...r,
+        stdout: clean(r.stdout).trimEnd(),
+        stderr: clean(r.stderr).trimEnd(),
+      })),
+      success: result.success,
+    };
 
     return {
-      content,
-      structuredContent: { results: cleanedResults, success: result.success } satisfies ExecOutput,
+      content: [{ type: 'text', text: JSON.stringify(canonical) }],
+      structuredContent: canonical,
       isError: !result.success,
     };
   };
