@@ -14,7 +14,7 @@ function input(steps: Step[], chaining: ExecInput['chaining'] = 'bail_on_error')
 
 /** Helper: single command step */
 function step(...commands: Command[]): Step {
-  return { commands };
+  return { commands: commands as [Command, ...Command[]] };
 }
 
 /** Helper: single command */
