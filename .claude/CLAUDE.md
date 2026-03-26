@@ -72,7 +72,7 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `main`. `1.0.0-preview.5` prepared, pending PR and release.
+Branch: `main`. `1.0.0-preview.5` released. PR #22 merged (picomatch CVE fix). PR open for `fix/ansi-strip-structured-content` (fix #12). No version bump yet.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
