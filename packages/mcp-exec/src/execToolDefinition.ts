@@ -50,9 +50,15 @@ export const execToolDefinition = (server: McpServer, config?: ExecConfig): void
       };
     });
 
+    const cleanedResults = result.results.map((r) => ({
+      ...r,
+      stdout: clean(r.stdout).trimEnd(),
+      stderr: clean(r.stderr).trimEnd(),
+    }));
+
     return {
       content,
-      structuredContent: { results: result.results, success: result.success } satisfies ExecOutput,
+      structuredContent: { results: cleanedResults, success: result.success } satisfies ExecOutput,
       isError: !result.success,
     };
   };
