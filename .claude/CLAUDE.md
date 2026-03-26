@@ -72,7 +72,7 @@ Only update the `Status` field — do not modify any other frontmatter or prompt
 
 <!-- BEGIN:REPO:current-state -->
 ## Current State
-Branch: `main`. `1.0.0-preview.5` released. PR #22 merged (picomatch CVE fix). PR open for `fix/ansi-strip-structured-content` (fix #12). No version bump yet.
+Fix #13 merged (PR pending). `1.0.0-preview.5` on main. Both output paths now derived from single canonical result in `execToolDefinition.ts`. Ready for version bump and release.
 <!-- END:REPO:current-state -->
 
 <!-- BEGIN:REPO:architecture -->
